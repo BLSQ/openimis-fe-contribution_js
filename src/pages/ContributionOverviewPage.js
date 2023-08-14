@@ -6,6 +6,7 @@ import ContributionPage from "./ContributionPage";
 
 
 class ContributionOverviewPage extends Component {
+
     render() {
         const { history, modulesManager, contribution_uuid } = this.props;
         var actions = [{

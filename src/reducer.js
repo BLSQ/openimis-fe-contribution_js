@@ -28,6 +28,9 @@ function reducer(
     mutation: {},
     policySummary: null,
     errorPolicySummary: null,
+    transactionComplete: false,
+    paymentTypeIsMobile: false,
+    transactionUuid:""
   },
   action
 ) {
@@ -110,8 +113,6 @@ function reducer(
     case "CONTRIBUTION_POLICY_SUMMARY_REQ":
       return {
         ...state,
-        fetchingPolicySummary: true,
-        fetchedPolicySummary: false,
         policySummary: null,
         errorPolicySummary: null,
       };
@@ -124,14 +125,11 @@ function reducer(
       return {
         ...state,
         policySummary,
-        fetchingPolicySummary: false,
-        fetchedPolicySummary: true,
         errorPolicySummary: formatGraphQLError(action.payload),
       };
     case "CONTRIBUTION_POLICY_SUMMARY_ERR":
       return {
         ...state,
-        fetchingPolicySummary: false,
         errorPolicySummary: formatServerError(action.payload),
       };
     case "CONTRIBUTION_OVERVIEW_REQ":
@@ -167,73 +165,29 @@ function reducer(
         contributionsPageInfo: { totalCount: 0 },
         contribution: null,
       };
-    case "CONTRIBUTION_OVERVIEW_CLEAR":
+
+    case "PAYMENT_TRANSACTION_COMPLETED":
       return {
         ...state,
-        fetchingContribution: false,
-        fetchedContribution: false,
-        contribution: null,
-        errorContribution: null,
+        transactionComplete: true,
       };
-    case "CONTRIBUTION_FIELDS_VALIDATION_REQ":
+
+    case "PAYMENT_TYPE_IS_MOBILE":
       return {
         ...state,
-        validationFields: {
-          ...state.validationFields,
-          contributionReceipt: {
-            isValidating: true,
-            isValid: false,
-            validationError: null,
-          },
-        },
+        paymentTypeIsMobile: true,
       };
-    case "CONTRIBUTION_FIELDS_VALIDATION_RESP":
+
+    case "ADD_TRANSAC_UUID" :
+      return{
+        ...state,
+        transactionUuid:action.payload
+      } 
+
+    case "PAYMENT_TYPE_IS_MOBILE_RESET":
       return {
         ...state,
-        validationFields: {
-          ...state.validationFields,
-          contributionReceipt: {
-            isValidating: false,
-            isValid: action.payload?.data.isValid,
-            validationError: formatGraphQLError(action.payload),
-          },
-        },
-      };
-    case "CONTRIBUTION_FIELDS_VALIDATION_ERR":
-      return {
-        ...state,
-        validationFields: {
-          ...state.validationFields,
-          contributionReceipt: {
-            isValidating: false,
-            isValid: false,
-            validationError: formatServerError(action.payload),
-          },
-        },
-      };
-    case "CONTRIBUTION_FIELDS_VALIDATION_CLEAR":
-      return {
-        ...state,
-        validationFields: {
-          ...state.validationFields,
-          contributionReceipt: {
-            isValidating: true,
-            isValid: false,
-            validationError: null,
-          },
-        },
-      };
-    case "CONTRIBUTION_FIELDS_VALIDATION_SET_VALID":
-      return {
-        ...state,
-        validationFields: {
-          ...state.validationFields,
-          contributionReceipt: {
-            isValidating: false,
-            isValid: true,
-            validationError: null,
-          },
-        },
+        paymentTypeIsMobile: false,
       };
     case "CONTRIBUTION_MUTATION_REQ":
       return dispatchMutationReq(state, action);
