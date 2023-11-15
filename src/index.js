@@ -7,6 +7,7 @@ import ContributionOverviewPage from "./pages/ContributionOverviewPage";
 import PoliciesPremiumsOverview from "./components/PoliciesPremiumsOverview";
 import PremiumPaymentTypePicker from "./pickers/PremiumPaymentTypePicker";
 import PremiumCategoryPicker from "./pickers/PremiumCategoryPicker";
+import WalletPicker from "./pickers/WalletPicker";
 import messages_en from "./translations/en.json";
 import reducer from "./reducer";
 
@@ -25,6 +26,7 @@ const DEFAULT_CONFIG = {
     { key: "contribution.PremiumPicker.projection", ref: ["id", "uuid", "receipt"] },
     { key: "contribution.PremiumPaymentTypePicker", ref: PremiumPaymentTypePicker },
     { key: "contribution.PremiumCategoryPicker", ref: PremiumCategoryPicker },
+    { key: "contribution.WalletPicker", ref: WalletPicker },
     { key: "contribution.contributions", ref: ROUTE_CONTRIBUTION_CONTRIBUTIONS },
     { key: "contribution.contributionNew", ref: ROUTE_CONTRIBUTION_CONTRIBUTION },
     { key: "contribution.contributionOverview", ref: ROUTE_CONTRIBUTION_CONTRIBUTION_OVERVIEW },

@@ -2,10 +2,8 @@ import React, { Component } from "react";
 import { injectIntl } from "react-intl";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
-
 import { withTheme, withStyles } from "@material-ui/core/styles";
 import ReplayIcon from "@material-ui/icons/Replay";
-
 import {
   formatMessageWithValues,
   withModulesManager,
@@ -16,15 +14,14 @@ import {
   coreConfirm,
   Helmet,
 } from "@openimis/fe-core";
+import { RIGHT_CONTRIBUTION } from "../constants";
+
 import {
   fetchContribution,
   newContribution,
   createContribution,
   fetchPolicySummary,
-  clearContribution,
-  fetchPoliciesPremiums,
 } from "../actions";
-import { RIGHT_CONTRIBUTION } from "../constants";
 import ContributionMasterPanel from "./ContributionMasterPanel";
 import SaveContributionDialog from "./SaveContributionDialog";
 
@@ -38,6 +35,7 @@ const CONTRIBUTION_OVERVIEW_MUTATIONS_KEY =
 class ContributionForm extends Component {
   _newContribution = () => ({
     isPhotoFee: false,
+    transactionUuid: null,
   });
 
   state = {
@@ -55,8 +53,8 @@ class ContributionForm extends Component {
       modulesManager,
       fetchContribution,
       fetchPolicySummary,
-      fetchPoliciesPremiums,
     } = this.props;
+
     if (contribution_uuid) {
       this.setState(
         (state, props) => ({ contribution_uuid: props.contribution_uuid }),
@@ -64,8 +62,7 @@ class ContributionForm extends Component {
       );
     }
     if (policy_uuid) {
-      fetchPolicySummary(modulesManager, [policy_uuid]);
-      fetchPoliciesPremiums(modulesManager, [`policyUuids: "${policy_uuid}"`]);
+      fetchPolicySummary(modulesManager, policy_uuid);
       this.setState({
         contribution: {
           ...this._newContribution(),
@@ -118,10 +115,6 @@ class ContributionForm extends Component {
     }
   }
 
-  componentWillUnmount = () => {
-    this.props.clearContribution();
-  };
-
   reload = () => {
     const { contribution } = this.state;
     this.props.fetchContribution(
@@ -133,18 +126,33 @@ class ContributionForm extends Component {
 
   canSave = () => {
     const { contribution } = this.state;
-    const { isReceiptValid } = this.props;
     if (
       !contribution ||
       (contribution &&
         (!contribution.payDate ||
           !contribution.payType ||
-          !contribution.amount ||
+          !contribution.policy.value ||
           !contribution.receipt ||
           !contribution.policy ||
-          contribution.validityTo ||
-          (contribution.policy && !contribution.policy.uuid) ||
-          !isReceiptValid))
+          (contribution.policy && !contribution.policy.uuid)))
+    )
+      return false;
+    return true;
+  };
+
+  canSaveMobile = () => {
+    const { contribution } = this.state;
+    const { transactionComplete } = this.props;
+    if (
+      !contribution ||
+      !transactionComplete ||
+      (contribution &&
+        (!contribution.payDate ||
+          !contribution.payType ||
+          !contribution.policy.value ||
+          !contribution.receipt ||
+          !contribution.policy ||
+          (contribution.policy && !contribution.policy.uuid)))
     )
       return false;
     return true;
@@ -197,8 +205,9 @@ class ContributionForm extends Component {
       readOnly = false,
       save,
       back,
+      paymentTypeIsMobile,
+      transactionComplete
     } = this.props;
-
     const { contribution, saveContribution, newContribution, reset, update } =
       this.state;
     if (!rights.includes(RIGHT_CONTRIBUTION)) return null;
@@ -217,13 +226,7 @@ class ContributionForm extends Component {
       },
     ];
     return (
-      <div
-        className={
-          !!runningMutation || contribution?.validityTo
-            ? classes.lockedPage
-            : null
-        }
-      >
+      <div className={!!runningMutation ? classes.lockedPage : null}>
         <Helmet
           title={formatMessageWithValues(
             this.props.intl,
@@ -235,7 +238,6 @@ class ContributionForm extends Component {
           contribution={saveContribution && contribution}
           onConfirm={this._save}
           onCancel={() => this._cancelSave()}
-          installmentsNumber={this.props?.installmentsNumber}
         />
         <ProgressOrError
           progress={fetchingContribution}
@@ -253,7 +255,14 @@ class ContributionForm extends Component {
                 : "ContributionOverview.title"
             }
             edited_id={contribution_uuid}
-            edited={contribution}
+            edited={
+              paymentTypeIsMobile && transactionComplete
+                ? {
+                    ...contribution,
+                    transactionUuid: this.props.transactionUuid,
+                  }
+                : contribution
+            }
             reset={reset}
             back={back}
             // add={!!add && !newContribution ? this._add : null}
@@ -267,11 +276,10 @@ class ContributionForm extends Component {
             HeadPanel={ContributionMasterPanel}
             contribution={contribution}
             onEditedChanged={this.onEditedChanged}
-            canSave={this.canSave}
+            canSave={paymentTypeIsMobile ? this.canSaveMobile : this.canSave}
             save={!!save ? this.confirmSave : null}
             update={update}
             onActionToConfirm={this.onActionToConfirm}
-            openDirty={save}
           />
         )}
       </div>
@@ -287,26 +295,24 @@ const mapStateToProps = (state, props) => ({
   fetchingContribution: state.contribution.fetchingContribution,
   errorContribution: state.contribution.errorContribution,
   fetchedContribution: state.contribution.fetchedContribution,
-  installmentsNumber: state.contribution.policiesPremiumsPageInfo.totalCount,
   submittingMutation: state.contribution.submittingMutation,
   policySummary: state.contribution.policySummary,
   mutation: state.contribution.mutation,
   contribution: state.contribution.contribution,
   confirmed: state.core.confirmed,
+  transactionComplete: state.contribution.transactionComplete,
+  paymentTypeIsMobile: state.contribution.paymentTypeIsMobile,
+  transactionUuid: state.contribution.transactionUuid,
   state: state,
-  isReceiptValid:
-    state.contribution?.validationFields?.contributionReceipt.isValid,
 });
 
 const mapDispatchToProps = (dispatch) => {
   return bindActionCreators(
     {
-      fetchPoliciesPremiums,
       fetchContribution,
       fetchPolicySummary,
       newContribution,
       createContribution,
-      clearContribution,
       journalize,
       coreConfirm,
     },

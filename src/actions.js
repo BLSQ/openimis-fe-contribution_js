@@ -1,6 +1,5 @@
 import {
   graphql,
-  graphqlWithVariables,
   formatPageQuery,
   formatPageQueryWithCount,
   formatMutation,
@@ -8,6 +7,7 @@ import {
   formatGQLString,
 } from "@openimis/fe-core";
 import _ from "lodash";
+import _uuid from "lodash-uuid";
 
 const CONTRIBUTION_FULL_PROJECTION = (mm) => [
   "id",
@@ -17,31 +17,12 @@ const CONTRIBUTION_FULL_PROJECTION = (mm) => [
   "payType",
   "receipt",
   "isPhotoFee",
-  "validityTo",
   "clientMutationId",
   `payer${mm.getProjection("payer.PayerPicker.projection")}`,
   `policy${mm.getProjection("policy.PolicyPicker.projection")}`,
 ];
 
 export function fetchPoliciesPremiums(mm, filters) {
-  let payload = formatPageQueryWithCount("premiumsByPolicies", filters, [
-    "id",
-    "uuid",
-    "payDate",
-    `payer${mm.getProjection("payer.PayerPicker.projection")}`,
-    "amount",
-    "payType",
-    "receipt",
-    "isPhotoFee",
-  ]);
-  return graphql(payload, "CONTRIBUTION_POLICES_PREMIUMS");
-}
-
-export function fetchPoliciesPremiums2(mm, policyUuid) {
-  let filters = [];
-  if (!!policyUuid) {
-    filters.push(`uuid: "${policyUuid}"`);
-  }
   let payload = formatPageQueryWithCount("premiumsByPolicies", filters, [
     "id",
     "uuid",
@@ -81,9 +62,7 @@ export function selectPremium(premium) {
 export function formatContributionGQL(mm, contribution) {
   const req = `
     ${
-      contribution.uuid !== undefined && contribution.uuid !== null
-        ? `uuid: "${contribution.uuid}"`
-        : ""
+      contribution.uuid !== undefined && contribution.uuid !== null ? `uuid: "${contribution.uuid}"`: ""
     }
     ${
       !!contribution.receipt
@@ -94,17 +73,18 @@ export function formatContributionGQL(mm, contribution) {
     ${!!contribution.payType ? `payType: "${contribution.payType}"` : ""}
     ${`isPhotoFee: ${contribution.isPhotoFee}`}
     ${!!contribution.action ? `action: "${contribution.action}"` : ""}
-    ${!!contribution.amount ? `amount: "${contribution.amount}"` : ""}
+    ${`amount: "${formatGQLString(contribution.policy.value)}"`}
     ${!!contribution.payer ? `payerUuid: "${contribution.payer.uuid}"` : ""}
+    ${!!contribution.transactionUuid ? ` paymentTransactionUuid: "${contribution.transactionUuid}"` : ""}
+   
+    
     ${
       !!contribution.jsonExt
         ? `jsonExt: ${formatJsonField(contribution.jsonExt)}`
         : ""
     }
     ${
-      !!contribution.policy
-        ? `policyUuid: "${formatGQLString(contribution.policy.uuid)}"`
-        : ""
+      !!contribution.policy? `policyUuid: "${formatGQLString(contribution.policy.uuid)}"` : ""
     }
   `;
   return req;
@@ -118,10 +98,10 @@ export function fetchPolicySummary(mm, policyUuid) {
     "id",
     "uuid",
     "startDate",
-    "product{name, code, maxInstallments}",
+    "product{name}",
     "expiryDate",
     "value",
-    "sumPremiums",
+    "family{headInsuree{uuid,otherNames}}",
   ]);
   return graphql(payload, "CONTRIBUTION_POLICY_SUMMARY");
 }
@@ -218,32 +198,19 @@ export function deleteContribution(mm, contribution, clientMutationLabel) {
   );
 }
 
-export function clearContribution() {
-  return (dispatch) => {
-    dispatch({ type: `CONTRIBUTION_OVERVIEW_CLEAR` });
-  };
-}
+export const transactionDone = () => ({
+  type: "PAYMENT_TRANSACTION_COMPLETED",
+});
 
-export function validateReceipt(mm, variables) {
-  return graphqlWithVariables(
-    `
-    query ($code: String!, $policyUuid: String!) {
-      isValid: validatePremiumCode(code: $code, policyUuid: $policyUuid)
-    }
-    `,
-    variables,
-    `CONTRIBUTION_FIELDS_VALIDATION`
-  );
-}
+export const setPaymentTypeIsMobile = () => ({
+  type: "PAYMENT_TYPE_IS_MOBILE",
+});
 
-export function setReceiptValid(mm) {
-  return (dispatch) => {
-    dispatch({ type: `CONTRIBUTION_FIELDS_VALIDATION_SET_VALID` });
-  };
-}
+export const resetPaymentTypeIsMobile = () => ({
+  type: "PAYMENT_TYPE_IS_MOBILE_RESET",
+});
 
-export function clearReceiptValidation(mm) {
-  return (dispatch) => {
-    dispatch({ type: `CONTRIBUTION_FIELDS_VALIDATION_CLEAR` });
-  };
-}
+export const addTransactionUUid =(uuid)=>({
+    type:"ADD_TRANSAC_UUID",
+    payload:uuid
+})
