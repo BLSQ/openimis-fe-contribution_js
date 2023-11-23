@@ -23,9 +23,11 @@ export const INITIATE_TRANSACTION = (amount, serviceProvider, insureeUuid) => {
             insureeUuid:"${insureeUuid}" ,
         }
             ) {
-            internalId
-            clientMutationId
-            uuids
+              Success
+              responseMessage
+              uuids
+              detail
+              clientMutationId
             } 
         }
 
@@ -48,7 +50,13 @@ export const PROCESS_TRANSACTION = (
         paymentServiceProviderUuid:"${serviceProvider}",
         uuid:"${transactionId}"
       }) {
-        internalId
+        
+        responseCode
+        responseMessage
+        clientMutationId
+        Success
+        detail
+        clientMutationId
       }
     }
     `;

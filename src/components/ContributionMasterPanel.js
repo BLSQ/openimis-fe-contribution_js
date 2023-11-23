@@ -22,11 +22,8 @@ const styles = (theme) => ({
 });
 
 class ContributionMasterPanel extends FormPanel {
-  
-     
-  render() {    
-       const { classes, edited, readOnly, transactionUuid, paymentTypeIsMobile } =
-      this.props;
+  render() {
+    const { classes, edited, readOnly } = this.props;
 
     return (
       <>
@@ -118,7 +115,7 @@ class ContributionMasterPanel extends FormPanel {
                 label="contribution.receipt"
                 required
                 readOnly={readOnly}
-                value={edited?edited.receipt:""}
+                value={edited ? edited.receipt : ""}
                 onChange={(c) => this.updateAttribute("receipt", c)}
               />
             </Grid>
@@ -142,7 +139,6 @@ class ContributionMasterPanel extends FormPanel {
     );
   }
 }
-
 
 const mapStateToProps = (state) => ({
   transactionUuid: state.contribution.transactionUuid,

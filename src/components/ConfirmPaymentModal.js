@@ -21,36 +21,41 @@ const style = {
 };
 
 function ConfirmPaymentModal(props) {
-  const { edited } = props.parentProps;
+  const amount = props.parentProps.edited.policy.value;
   const [otp, setOtp] = useState("");
   const [conMessage, setConMessage] = useState("");
+  const [err, setError] = useState(false);
   const { transactionDone, addTransactionUUid } = props;
 
   // for test purpose the amount below is 1 change it to edited.policy.value in production
   const mutationConfirm = PROCESS_TRANSACTION(
-    edited.policy.value,
+    amount,
     props.data.serviceProvider,
     props.data.insureeUuid,
     otp,
     props.data.transactionsUuid
   );
 
-
   const { isLoading, error, mutate } = useGraphqlMutation(mutationConfirm);
 
   const handleConfirmPayment = () => {
     mutate()
       .then((result) => {
-        setConMessage("Transaction confirm");
-        transactionDone();
-        addTransactionUUid(props.data.transactionsUuid)
-        
-        setTimeout(() => {
-          props.data.handleClose();
-        }, 2000);
+        const response = result.payload.data.processTransaction;
+        if (response.Success === false) {
+          setError(true);
+          setConMessage(response.responseMessage + " Check OTP and try again");
+        } else {
+          addTransactionUUid(props.data.transactionsUuid);
+          transactionDone();
+          setConMessage("Transaction is Sucessfull");
+          setTimeout(() => {
+            props.data.handleClose();
+          }, 5000);
+        }
       })
       .catch((err) => {
-        setConMessage("Transaction Not completed");
+        setConMessage("Transaction Not completed, Try again");
       });
   };
   return (
@@ -84,7 +89,7 @@ function ConfirmPaymentModal(props) {
           onChange={(e) => setOtp(e.target.value)}
         />
 
-        <p>{conMessage}</p>
+        <p style={{ color: `${err ? "red" : ""}` }}>{conMessage}</p>
       </Box>
       <Box display="flex" justifyContent="center" marginTop="20px">
         <button
@@ -107,13 +112,12 @@ function ConfirmPaymentModal(props) {
 
 const mapDispatchToProps = {
   transactionDone,
-  addTransactionUUid  
-  
+  addTransactionUUid,
 };
 
 const mapStateToProps = (state) => ({
   transactionCompleted: state.contribution.transactionComplete,
-  transactionUuid:state.contribution.transactionUuid
+  transactionUuid: state.contribution.transactionUuid,
 });
 
 export default connect(

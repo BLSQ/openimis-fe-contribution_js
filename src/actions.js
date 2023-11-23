@@ -62,7 +62,9 @@ export function selectPremium(premium) {
 export function formatContributionGQL(mm, contribution) {
   const req = `
     ${
-      contribution.uuid !== undefined && contribution.uuid !== null ? `uuid: "${contribution.uuid}"`: ""
+      contribution.uuid !== undefined && contribution.uuid !== null
+        ? `uuid: "${contribution.uuid}"`
+        : ""
     }
     ${
       !!contribution.receipt
@@ -75,7 +77,11 @@ export function formatContributionGQL(mm, contribution) {
     ${!!contribution.action ? `action: "${contribution.action}"` : ""}
     ${`amount: "${formatGQLString(contribution.policy.value)}"`}
     ${!!contribution.payer ? `payerUuid: "${contribution.payer.uuid}"` : ""}
-    ${!!contribution.transactionUuid ? ` paymentTransactionUuid: "${contribution.transactionUuid}"` : ""}
+    ${
+      !!contribution.transactionUuid
+        ? `paymentTransactionUuid: "${contribution.transactionUuid}"`
+        : ""
+    }
    
     
     ${
@@ -84,7 +90,9 @@ export function formatContributionGQL(mm, contribution) {
         : ""
     }
     ${
-      !!contribution.policy? `policyUuid: "${formatGQLString(contribution.policy.uuid)}"` : ""
+      !!contribution.policy
+        ? `policyUuid: "${formatGQLString(contribution.policy.uuid)}"`
+        : ""
     }
   `;
   return req;
@@ -210,7 +218,7 @@ export const resetPaymentTypeIsMobile = () => ({
   type: "PAYMENT_TYPE_IS_MOBILE_RESET",
 });
 
-export const addTransactionUUid =(uuid)=>({
-    type:"ADD_TRANSAC_UUID",
-    payload:uuid
-})
+export const addTransactionUUid = (uuid) => ({
+  type: "ADD_TRANSAC_UUID",
+  payload: uuid,
+});

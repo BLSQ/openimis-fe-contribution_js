@@ -35,7 +35,6 @@ const CONTRIBUTION_OVERVIEW_MUTATIONS_KEY =
 class ContributionForm extends Component {
   _newContribution = () => ({
     isPhotoFee: false,
-    transactionUuid: null,
   });
 
   state = {
@@ -110,6 +109,14 @@ class ContributionForm extends Component {
         contribution: {
           ...prevState.contribution,
           policy: this.props.policySummary,
+        },
+      }));
+    }
+    if (prevProps.transactionUuid !== this.props.transactionUuid) {
+      this.setState((prevState) => ({
+        contribution: {
+          ...prevState.contribution,
+          transactionUuid: this.props.transactionUuid,
         },
       }));
     }
@@ -206,8 +213,8 @@ class ContributionForm extends Component {
       save,
       back,
       paymentTypeIsMobile,
-      transactionComplete
     } = this.props;
+
     const { contribution, saveContribution, newContribution, reset, update } =
       this.state;
     if (!rights.includes(RIGHT_CONTRIBUTION)) return null;
@@ -255,14 +262,7 @@ class ContributionForm extends Component {
                 : "ContributionOverview.title"
             }
             edited_id={contribution_uuid}
-            edited={
-              paymentTypeIsMobile && transactionComplete
-                ? {
-                    ...contribution,
-                    transactionUuid: this.props.transactionUuid,
-                  }
-                : contribution
-            }
+            edited={contribution}
             reset={reset}
             back={back}
             // add={!!add && !newContribution ? this._add : null}
