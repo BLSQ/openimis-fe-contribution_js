@@ -61,15 +61,13 @@ export function selectPremium(premium) {
 
 export function formatContributionGQL(mm, contribution) {
   const req = `
-    ${
-      contribution.uuid !== undefined && contribution.uuid !== null
-        ? `uuid: "${contribution.uuid}"`
-        : ""
+    ${contribution.uuid !== undefined && contribution.uuid !== null
+      ? `uuid: "${contribution.uuid}"`
+      : ""
     }
-    ${
-      !!contribution.receipt
-        ? `receipt: "${formatGQLString(contribution.receipt)}"`
-        : ""
+    ${!!contribution.receipt
+      ? `receipt: "${formatGQLString(contribution.receipt)}"`
+      : ""
     }
     ${!!contribution.payDate ? `payDate: "${contribution.payDate}"` : ""}
     ${!!contribution.payType ? `payType: "${contribution.payType}"` : ""}
@@ -77,22 +75,19 @@ export function formatContributionGQL(mm, contribution) {
     ${!!contribution.action ? `action: "${contribution.action}"` : ""}
     ${`amount: "${formatGQLString(contribution.policy.value)}"`}
     ${!!contribution.payer ? `payerUuid: "${contribution.payer.uuid}"` : ""}
-    ${
-      !!contribution.transactionUuid
-        ? `paymentTransactionUuid: "${contribution.transactionUuid}"`
-        : ""
+    ${!!contribution.transactionUuid
+      ? `paymentTransactionUuid: "${contribution.transactionUuid}"`
+      : ""
     }
    
     
-    ${
-      !!contribution.jsonExt
-        ? `jsonExt: ${formatJsonField(contribution.jsonExt)}`
-        : ""
+    ${!!contribution.jsonExt
+      ? `jsonExt: ${formatJsonField(contribution.jsonExt)}`
+      : ""
     }
-    ${
-      !!contribution.policy
-        ? `policyUuid: "${formatGQLString(contribution.policy.uuid)}"`
-        : ""
+    ${!!contribution.policy
+      ? `policyUuid: "${formatGQLString(contribution.policy.uuid)}"`
+      : ""
     }
   `;
   return req;
@@ -205,6 +200,8 @@ export function deleteContribution(mm, contribution, clientMutationLabel) {
     }
   );
 }
+
+
 
 export const transactionDone = () => ({
   type: "PAYMENT_TRANSACTION_COMPLETED",

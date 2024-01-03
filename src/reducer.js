@@ -30,7 +30,7 @@ function reducer(
     errorPolicySummary: null,
     transactionComplete: false,
     paymentTypeIsMobile: false,
-    transactionUuid:""
+    transactionUuid: ""
   },
   action
 ) {
@@ -166,6 +166,8 @@ function reducer(
         contribution: null,
       };
 
+
+    
     case "PAYMENT_TRANSACTION_COMPLETED":
       return {
         ...state,
@@ -178,11 +180,11 @@ function reducer(
         paymentTypeIsMobile: true,
       };
 
-    case "ADD_TRANSAC_UUID" :
-      return{
+    case "ADD_TRANSAC_UUID":
+      return {
         ...state,
-        transactionUuid:action.payload
-      } 
+        transactionUuid: action.payload
+      }
 
     case "PAYMENT_TYPE_IS_MOBILE_RESET":
       return {

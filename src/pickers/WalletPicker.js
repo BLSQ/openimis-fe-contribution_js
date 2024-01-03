@@ -30,7 +30,6 @@ const WalletPicker = (props) => {
            name
             uuid,
             account
-            pin
           }
         }
        }

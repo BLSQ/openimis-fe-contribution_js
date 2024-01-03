@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useGraphqlQuery, useGraphqlMutation } from "@openimis/fe-core";
+import { useGraphqlQuery, baseApiUrl } from "@openimis/fe-core";
 import { AmountInput } from "@openimis/fe-core";
 import {
   Grid,
@@ -20,16 +20,15 @@ function AddPayment(props) {
   const parentProps = props.parentProps;
   const { edited } = parentProps;
   const [serviceProvider, setServiceProvider] = useState("");
-  const [open, setOpen] = useState(false);
-  const [openErr, setOpenErr] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [openErr, setIsErrorOpen] = useState(false);
   const [transactionsUuid, setTransactionUuid] = useState("");
   const [message, setMessage] = useState("");
-  const [errMessage, setErrMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const { setPaymentTypeIsMobile, resetPaymentTypeIsMobile } = props;
 
   useEffect(() => {
     setPaymentTypeIsMobile();
-
     return () => {
       resetPaymentTypeIsMobile();
     };
@@ -41,38 +40,50 @@ function AddPayment(props) {
   const { data } = useGraphqlQuery(GET_WALLETS);
   //graphql mutation to iniate transaction
   //for test purpose the value of the amount is 1 below change it to edited.policy.value in production
-  const mutationIniate = INITIATE_TRANSACTION(
+  const mutationInitiate = INITIATE_TRANSACTION(
     edited.policy.value,
     serviceProvider,
     insureeUuid
   );
-  const { isloading, error, mutate } = useGraphqlMutation(mutationIniate);
-  const handleClose = () => {
-    setOpen(false);
-  };
+
+  // close modal
+  const handleClose = () => setIsOpen(false);
+  const handleMutation = async () => {
+    try {
+      const response = await fetch(`${baseApiUrl}/graphql`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: mutationInitiate })
+      });
+
+      const payload = await response.json();
+      const data = payload.data.initiateTransaction;
+
+      if (data?.Success === false) {
+        setErrorMessage(data.responseMessage);
+        setIsErrorOpen(true);
+      } else {
+        setTransactionUuid(data?.uuids);
+        setIsOpen(true);
+      }
+
+    } catch (error) {
+      setErrorMessage("Payment initiation failed. Please try again.");
+      setIsErrorOpen(true);
+    }
+  }
 
   const submitPayment = (e) => {
     e.preventDefault();
-    // run the mutation function
+    // check that service provider is selected
     if (!serviceProvider) {
       setMessage("You have to provide a Service Provider");
-    } else {
-      setMessage("");
-      mutate()
-        .then((result) => {
-          const response = result.payload.data.initiateTransaction;
-          if (response?.Success === false) {
-            setErrMessage(response.responseMessage);
-            setOpenErr(true);
-          } else {
-            setTransactionUuid(response?.uuids);
-            setOpen(true);
-          }
-        })
-        .catch((err) => {
-          setErrMessage("Payment iniatiation failed try again");
-          setOpenErr(true);
-        });
+    }
+    // run mutation if service provider is selected
+    else {
+      handleMutation()
     }
   };
 
@@ -141,7 +152,7 @@ function AddPayment(props) {
         </Box>
       </div>
       <Modal
-        open={open}
+        open={isOpen}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -182,13 +193,13 @@ function AddPayment(props) {
                 textAlign: "center",
               }}
             >
-              {errMessage}
+              {errorMessage}
             </p>
 
             <div style={{ display: "flex", justifyContent: "end" }}>
               <button
-                onClick={() => setOpenErr(false)}
-                style={{ position: "relative", right: "0" }}
+                onClick={() => setIsErrorOpen(false)}
+                style={{ position: "relative", right: "0", padding: "5px 10px", border:'red', borderRadius: "5px", background: "red", color: "white" }}
               >
                 close
               </button>

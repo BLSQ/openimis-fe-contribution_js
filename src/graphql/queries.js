@@ -6,7 +6,6 @@ query {
          name,
          uuid,
          account,
-         pin
        }
      }
     }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Typography, TextField, IconButton } from "@material-ui/core";
-import { useGraphqlMutation } from "@openimis/fe-core";
+import { useGraphqlMutation, baseApiUrl } from "@openimis/fe-core";
 import CloseIcon from "@material-ui/icons/Close";
 import { connect } from "react-redux";
 import { transactionDone, addTransactionUUid } from "../actions";
@@ -37,26 +37,38 @@ function ConfirmPaymentModal(props) {
   );
 
   const { isLoading, error, mutate } = useGraphqlMutation(mutationConfirm);
-
-  const handleConfirmPayment = () => {
-    mutate()
-      .then((result) => {
-        const response = result.payload.data.processTransaction;
-        if (response.Success === false) {
-          setError(true);
-          setConMessage(response.responseMessage + " Check OTP and try again");
-        } else {
-          addTransactionUUid(props.data.transactionsUuid);
-          transactionDone();
-          setConMessage("Transaction is Sucessfull");
-          setTimeout(() => {
-            props.data.handleClose();
-          }, 5000);
-        }
+  const processTransaction = async () => {
+    try {
+      const response = await fetch(`${baseApiUrl}/graphql`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: mutationConfirm })
       })
-      .catch((err) => {
-        setConMessage("Transaction Not completed, Try again");
-      });
+
+      const payload = await response.json()
+      const data = payload.data.processTransaction;
+      if (data?.Success === false) {
+        setError(true);
+        setConMessage(data.responseMessage + " Check OTP and try again");
+      }
+      else {
+        addTransactionUUid(props.data.transactionsUuid);
+        transactionDone();
+        setConMessage("Transaction is Sucessfull");
+        setTimeout(() => {
+          props.data.handleClose();
+        }, 5000);
+      }
+
+    } catch (error) {
+      setConMessage("Transaction Not completed, Try again")
+    }
+  }
+
+  const handleConfirmPayment = async () => {
+    processTransaction()
   };
   return (
     <Box sx={style}>
