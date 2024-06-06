@@ -14,6 +14,7 @@ import { RIGHT_CONTRIBUTION } from "./constants";
 import PremiumCollectionReport from "./reports/PremiumCollectionReport";
 import PaymentCategoryOverviewReport from "./reports/PaymentCategoryOverviewReport";
 import ContributionsDistributionReport from "./reports/ContributionsDistribution";
+import NhiaFinancialReport from "./reports/NhiaFinancialReport";
 
 const ROUTE_CONTRIBUTION_CONTRIBUTIONS = "contribution/contributions";
 const ROUTE_CONTRIBUTION_CONTRIBUTION = "contribution/new";
@@ -85,6 +86,15 @@ const DEFAULT_CONFIG = {
         params.requested_year = values.year;
         return params;
       },
+    },
+    {
+      key: "nhia_financial_report",
+      component: NhiaFinancialReport,
+      isValid: (values) => values.startDate && values.endDate,
+      getParams: (values) => ({
+        start_date: values.startDate,
+        end_date: values.endDate,
+      }),
     },
   ],
   "refs": [

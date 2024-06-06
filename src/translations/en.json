@@ -69,5 +69,7 @@
     "contribution.PaymentCategoryOverviewReport.product": "Product",
     "contribution.ContributionsDistributionReport.month": "Month",
     "contribution.ContributionsDistributionReport.year": "Year",
-    "contribution.ContributionsDistributionReport.product": "Product"
+    "contribution.ContributionsDistributionReport.product": "Product",
+    "contribution.NhiaFinancialReport.startDate": "Contributions Since",
+    "contribution.NhiaFinancialReport.endDate": "Contributions Until"
 }
